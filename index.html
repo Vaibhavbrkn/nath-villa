@@ -142,6 +142,17 @@
   .set .dial{ width:30px; height:30px; flex:0 0 30px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #e9c27a, #8a6326); box-shadow:0 2px 6px rgba(0,0,0,.5); }
   .set.needtap{ animation:glowSet 1.6s ease-in-out infinite; }
   @keyframes glowSet{ 50%{ box-shadow:0 30px 60px -30px rgba(0,0,0,.8), inset 0 0 0 2px #7a5338, 0 0 0 5px rgba(255,207,122,.4); } }
+  .set .poptitle, .set .popfoot{ display:none; }
+  .set.pop{ position:fixed; z-index:50; left:50%; top:50%; transform:translate(-50%, -50%); width:min(92vw, 420px); margin:0; }
+  .set.pop .poptitle{ display:block; padding:6px 6px 14px; text-align:center; color:#fff3dc; font:italic 500 1.5rem/1.2 var(--serif); }
+  .set.pop .poptitle small{ display:block; margin-top:6px; font:400 12px/1.4 var(--sans); color:#e9cfa8; font-style:normal; }
+  .set.pop .popfoot{ display:flex; flex-direction:column; gap:10px; align-items:center; padding:14px 6px 4px; text-align:center; }
+  .popfoot a, .popfoot button, .popfoot span{ color:#ffe3ae; font:400 12px/1.4 var(--sans); letter-spacing:.06em; background:none; border:0; text-decoration:underline; text-underline-offset:3px; }
+  .popfoot .skip{ color:#cfb79a; text-decoration:none; letter-spacing:.2em; text-transform:uppercase; font-size:11px; margin-top:4px; }
+  .popfoot .ig{ display:none; color:#e9cfa8; text-decoration:none; }
+  .inapp .popfoot .ig{ display:block; }
+  #popbg{ position:fixed; inset:0; z-index:49; background:rgba(8,10,24,.78); display:none; }
+  #popbg.on{ display:block; }
   .tapnote{ display:none; margin-top:12px; font:400 13px/1.4 var(--sans); color:var(--warm); }
   .needtap + .tapnote{ display:block; }
 
@@ -265,13 +276,21 @@
   <h2>Chalo Jaane Do</h2>
   <p>The ghost’s favourite song. He hums it whenever someone he likes is upset.</p>
   <div class="set" id="set">
+    <div class="poptitle">The ghost brought a song.<small>Tap ▶ on the screen to play it.</small></div>
     <div class="screen"><div id="yt"></div></div>
     <div class="knobs">
       <div><b>Bhoothnath</b><span>Amitabh Bachchan, Juhi Chawla</span></div>
       <span class="eq"><i></i><i></i><i></i><i></i></span>
       <div class="dial"></div>
     </div>
+    <div class="popfoot">
+      <a class="ig" id="openout" href="#">Song not playing? Open this page in your browser</a>
+      <span class="ig" id="iosnote">Song not playing? Tap ••• at the top and choose “Open in browser”.</span>
+      <a href="https://youtu.be/UyjL052eFAA" target="_blank" rel="noopener">Play it on YouTube instead</a>
+      <button class="skip" type="button" id="skippop">Continue without music</button>
+    </div>
   </div>
+  <div id="popbg"></div>
   <div class="tapnote">Your phone needs one tap on the play button above.</div>
 </section>
 
@@ -404,7 +423,7 @@
           playing = e.data === YT.PlayerState.PLAYING;
           document.body.classList.toggle("playing", playing);
           $("#pp").textContent = playing ? "❚❚" : "▶";
-          if (playing) $("#set").classList.remove("needtap");
+          if (playing){ $("#set").classList.remove("needtap"); closePop(); }
           if (e.data === YT.PlayerState.ENDED){ player.seekTo(0); player.playVideo(); }
         },
       },
@@ -416,6 +435,30 @@
     document.head.appendChild(tag);
   }
 
+  const ua = navigator.userAgent;
+  const inApp = /Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|Twitter/i.test(ua);
+  const android = /Android/i.test(ua);
+  if (inApp) document.body.classList.add("inapp");
+  if (android){
+    $("#openout").href = `intent://${location.host}${location.pathname}#Intent;scheme=https;package=com.android.chrome;end`;
+    $("#iosnote").style.display = "none";
+  } else {
+    $("#openout").style.display = "none";
+  }
+  let popped = false;
+  function openPop(){
+    if (playing || popped) return;
+    popped = true;
+    $("#set").classList.add("pop");
+    $("#popbg").classList.add("on");
+  }
+  function closePop(){
+    $("#set").classList.remove("pop");
+    $("#popbg").classList.remove("on");
+  }
+  $("#skippop").addEventListener("click", closePop);
+  $("#popbg").addEventListener("click", closePop);
+
   function play(){
     want = true;
     if (!ready) return;
@@ -426,7 +469,7 @@
     if (playing) player.pauseVideo();
     else {
       play();
-      setTimeout(() => { if (!playing){ $("#set").classList.add("needtap"); $("#radio").scrollIntoView({ behavior: "smooth" }); } }, 1500);
+      setTimeout(() => { if (!playing){ popped = false; openPop(); } }, 1200);
     }
   });
 
@@ -438,6 +481,7 @@
     document.body.classList.add("scene-mode");
     pill.classList.add("on");
     setTimeout(() => say("Oh! You came.", "tap me, I know a few tricks"), 1500);
+    setTimeout(openPop, 1500);
     setTimeout(() => { if (!playing) $("#set").classList.add("needtap"); }, 4000);
   });
 })();
