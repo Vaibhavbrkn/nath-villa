@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Nath Villa</title>
 <meta name="robots" content="noindex">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
@@ -284,6 +285,7 @@
       <div class="dial"></div>
     </div>
     <div class="popfoot">
+      <span id="yterr"></span>
       <a class="ig" id="openout" href="#">Song not playing? Open this page in your browser</a>
       <span class="ig" id="iosnote">Song not playing? Tap ••• at the top and choose “Open in browser”.</span>
       <a href="https://youtu.be/UyjL052eFAA" target="_blank" rel="noopener">Play it on YouTube instead</a>
@@ -416,9 +418,13 @@
   window.onYouTubeIframeAPIReady = () => {
     player = new YT.Player("yt", {
       videoId: "UyjL052eFAA",
-      playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+      playerVars: { playsinline: 1, rel: 0, modestbranding: 1, origin: location.origin, widget_referrer: location.href },
       events: {
         onReady: () => { ready = true; if (want) play(); },
+        onError: (e) => {
+          $("#yterr").textContent = `YouTube couldn’t play it here (error ${e.data}).`;
+          openPop();
+        },
         onStateChange: (e) => {
           playing = e.data === YT.PlayerState.PLAYING;
           document.body.classList.toggle("playing", playing);
