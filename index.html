@@ -481,6 +481,12 @@
 
   /* ============================================================ knock */
   $("#knock").addEventListener("click", () => {
+    if (inApp && android && !sessionStorage.getItem("triedChrome")){
+      sessionStorage.setItem("triedChrome", "1");
+      location.href = $("#openout").href;
+      $("#gate p").textContent = "Opening in Chrome so the song can play… If nothing happens, knock again.";
+      return;
+    }
     play();
     $("#gate").classList.add("open", "gone");
     document.body.classList.remove("locked");
