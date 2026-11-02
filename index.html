@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nath Villa</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#141a33; --ink:#2b2438; --moon:#fff3c9; --warm:#ffcf7a; --rose:#e88aa0;
+    --serif:"Cormorant Garamond", Georgia, serif; --sans:"Jost", system-ui, sans-serif; --hand:"Caveat", cursive;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; overflow-x:hidden; max-width:100%; touch-action:pan-y pinch-zoom; background:var(--night); }
+  @supports (overflow:clip){ html,body{ overflow-x:clip; } }
+  body{ color:#f3ecff; font-family:var(--serif); -webkit-font-smoothing:antialiased; }
+  body.locked{ overflow:hidden; height:100vh; }
+  button{ font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+  /* ------------------------------------------------ door gate */
+  #gate{
+    position:fixed; inset:0; z-index:40; display:grid; place-items:center; text-align:center; padding:24px;
+    background:radial-gradient(120% 80% at 50% 0%, #2a3160, #141a33 60%, #0b0f22);
+    transition:opacity 1.2s .5s, visibility 1.2s .5s;
+  }
+  #gate.gone{ opacity:0; visibility:hidden; }
+  .door{ position:relative; width:170px; height:250px; margin:0 auto 26px; perspective:700px; }
+  .door .frame{ position:absolute; inset:-12px -12px 0; border-radius:90px 90px 0 0; background:#3a2a22; box-shadow:0 0 60px rgba(255,207,122,.15); }
+  .door .glow{ position:absolute; inset:0; border-radius:80px 80px 0 0; background:radial-gradient(circle at 50% 60%, #ffe2a0, #ffb74d 60%, #b86a2a); }
+  .door .leaf{
+    position:absolute; inset:0; border-radius:80px 80px 0 0; transform-origin:left center; transition:transform 1.1s cubic-bezier(.5,0,.3,1);
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 2px, transparent 2px 28px),
+      linear-gradient(#6b4630, #4e3121);
+    box-shadow:inset 0 0 0 6px #5a3a28, inset 0 0 0 9px #3a2418;
+  }
+  .door .leaf::after{ content:""; position:absolute; right:22px; top:52%; width:12px; height:12px; border-radius:50%; background:#d9a84e; box-shadow:0 0 0 3px #7a5320; }
+  #gate.open .door .leaf{ transform:rotateY(-105deg); }
+  .door .plate{
+    position:absolute; left:50%; top:-46px; transform:translateX(-50%); white-space:nowrap;
+    font:600 11px/1 var(--sans); letter-spacing:.34em; text-transform:uppercase; color:#e9c27a;
+    padding:8px 12px; border:1px solid rgba(233,194,122,.5); border-radius:3px; background:#241a16;
+  }
+  .lantern{ position:absolute; right:-44px; top:40px; width:18px; height:28px; border-radius:6px; background:#ffd27a; box-shadow:0 0 26px 10px rgba(255,190,90,.45); animation:flicker 2.4s infinite; }
+  .lantern::before{ content:""; position:absolute; left:50%; top:-16px; width:1px; height:16px; background:#a28a6a; }
+  @keyframes flicker{ 0%,100%{ opacity:1; } 45%{ opacity:.82; } 50%{ opacity:.95; } 70%{ opacity:.86; } }
+  #gate h1{ margin:0 0 8px; font:italic 500 clamp(2.2rem, 9vw, 3.2rem)/1 var(--serif); color:#fff3dc; }
+  #gate p{ margin:0 auto 26px; max-width:18em; font:300 14px/1.5 var(--sans); color:#b9b6d8; }
+  .btn{
+    border:0; border-radius:999px; padding:15px 32px; background:var(--warm); color:#2b1d10;
+    font:500 13px/1 var(--sans); letter-spacing:.22em; text-transform:uppercase; box-shadow:0 0 0 0 rgba(255,207,122,.5);
+    animation:beckon 2.2s ease-in-out infinite;
+  }
+  @keyframes beckon{ 50%{ box-shadow:0 0 0 12px rgba(255,207,122,0); transform:scale(1.04); } }
+  .small{ margin-top:18px; font:300 12px/1.4 var(--sans); letter-spacing:.08em; color:#8d8bb0; }
+
+  /* ------------------------------------------------ scene */
+  #scene{ position:relative; height:100vh; height:100svh; min-height:560px; max-width:520px; margin:0 auto; overflow:hidden; }
+  @media (min-width:521px){ #scene{ box-shadow:0 0 80px rgba(0,0,0,.5); } }
+  #sky{ position:absolute; inset:0; width:100%; height:100%; display:block; }
+  #sky .warmth{ transition:opacity 2s; }
+  #cloud{ transition:transform 1.4s cubic-bezier(.4,0,.2,1); }
+  .tw{ animation:tw 3s ease-in-out infinite; }
+  @keyframes tw{ 50%{ opacity:.25; } }
+
+  #ghost{
+    position:absolute; left:calc(28% - min(34vw, 150px) / 2); top:47%; width:min(34vw, 150px);
+    border:0; padding:0; background:none; z-index:3; animation:bob 3.2s ease-in-out infinite;
+  }
+  #ghost svg{ width:100%; height:auto; display:block; overflow:visible; filter:drop-shadow(0 0 18px rgba(220,230,255,.45)); }
+  @keyframes bob{ 50%{ transform:translateY(-14px); } }
+  #ghost{ transition:top 1.8s cubic-bezier(.4,0,.2,1), left 1.8s cubic-bezier(.4,0,.2,1); }
+  body.done-mode #ghost{ top:60%; left:calc(50% - min(34vw, 150px) / 2); }
+  #ghost .act{ transform-origin:50% 60%; }
+  .a-spin .act{ animation:spin .9s cubic-bezier(.4,0,.2,1); }
+  .a-flip .act{ animation:flip 1s cubic-bezier(.4,0,.2,1); }
+  .a-wobble .act{ animation:wobble .9s ease-in-out; }
+  .a-jump .act{ animation:jump .8s cubic-bezier(.3,1.5,.5,1); }
+  .a-shy .act{ animation:shy 1.2s ease-in-out; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes flip{ 40%{ transform:translateY(-40px) rotate(-180deg); } 100%{ transform:translateY(0) rotate(-360deg); } }
+  @keyframes wobble{ 20%{ transform:rotate(-12deg); } 40%{ transform:rotate(10deg); } 60%{ transform:rotate(-7deg); } 80%{ transform:rotate(4deg); } }
+  @keyframes jump{ 40%{ transform:translateY(-46px) scale(.92,1.08); } 70%{ transform:translateY(0) scale(1.1,.9); } }
+  @keyframes shy{ 30%,70%{ transform:scale(.9) rotate(-6deg); } }
+  #ghost .hands{ transition:transform .4s; }
+  .a-shy .hands{ transform:translateY(-34px); }
+
+  #bubble{
+    position:absolute; z-index:4; left:9%; top:calc(47% - 18px); transform:translateY(-100%);
+    width:min(66%, 290px); padding:14px 16px 16px; border-radius:18px; background:#fffaf0; color:var(--ink);
+    font:700 clamp(1.35rem, 5.6vw, 1.7rem)/1.15 var(--hand); text-align:center;
+    box-shadow:0 14px 30px -10px rgba(0,0,0,.5); opacity:0; transition:opacity .5s;
+  }
+  #bubble.on{ opacity:1; }
+  #bubble::after{ content:""; position:absolute; left:16%; bottom:-10px; border:10px solid transparent; border-top-color:#fffaf0; border-bottom:0; }
+  #bubble small{ display:block; margin-top:6px; font:400 11px/1.3 var(--sans); letter-spacing:.1em; color:#8a7f96; }
+
+  #tapme{
+    position:absolute; z-index:4; left:28%; top:calc(47% + min(34vw, 150px) * 1.25 + 10px); transform:translateX(-50%);
+    font:500 11px/1 var(--sans); letter-spacing:.3em; text-transform:uppercase; color:#cfd3ff; opacity:.85; white-space:nowrap;
+    animation:pulse 1.8s ease-in-out infinite; pointer-events:none;
+  }
+  @keyframes pulse{ 50%{ opacity:.35; } }
+  #tapme.off{ display:none; }
+
+  .fx{ position:absolute; z-index:5; pointer-events:none; font-size:22px; animation:rise 1.6s ease-out forwards; }
+  @keyframes rise{ from{ transform:translate(0,0) scale(.6); opacity:1; } to{ transform:translate(var(--dx), -120px) scale(1.2); opacity:0; } }
+
+  #lyric{
+    position:absolute; z-index:6; left:50%; top:31%; transform:translate(-50%, 10px); width:min(90%, 460px);
+    text-align:center; opacity:0; pointer-events:none; transition:opacity 2s, transform 2s;
+  }
+  #lyric.on{ opacity:1; transform:translate(-50%, 0); }
+  #lyric .l{ font:italic 500 clamp(1.45rem, 6vw, 2.1rem)/1.35 var(--serif); color:#fff7e2; text-shadow:0 0 22px rgba(255,220,150,.55), 0 2px 10px rgba(0,0,0,.6); text-wrap:balance; }
+  #lyric .l + .l{ margin-top:12px; color:#ffd9e2; }
+  #lyric small{ display:block; margin-top:16px; font:400 10px/1 var(--sans); letter-spacing:.34em; text-transform:uppercase; color:#c8c3ea; }
+
+  #down{
+    position:absolute; z-index:6; left:50%; bottom:calc(16px + env(safe-area-inset-bottom)); transform:translateX(-50%);
+    border:0; background:none; color:#e9e4ff; font:400 11px/1 var(--sans); letter-spacing:.3em; text-transform:uppercase; opacity:0; transition:opacity 1s;
+    padding:10px;
+  }
+  #down.on{ opacity:.8; }
+
+  /* ------------------------------------------------ radio */
+  #radio{ padding:70px 22px 130px; background:linear-gradient(#0f1430, #1b1838 40%, #241a33); text-align:center; }
+  .eyebrow{ font:500 11px/1 var(--sans); letter-spacing:.4em; text-transform:uppercase; color:#e9c27a; }
+  #radio h2{ margin:14px 0 8px; font:500 clamp(2rem, 8vw, 2.8rem)/1.05 var(--serif); color:#fff3dc; }
+  #radio p{ margin:0 auto; max-width:24em; font:italic 400 1.15rem/1.5 var(--serif); color:#bdb6d8; }
+  .set{
+    margin:28px auto 0; max-width:420px; padding:14px; border-radius:20px;
+    background:linear-gradient(#5a3b2a, #3e281c); box-shadow:0 30px 60px -30px rgba(0,0,0,.8), inset 0 0 0 2px #7a5338;
+  }
+  .set .screen{ position:relative; width:100%; aspect-ratio:16/10; min-height:200px; border-radius:12px; overflow:hidden; background:#000; box-shadow:inset 0 0 0 3px #2a1b12; }
+  .set .screen > *{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+  .set .knobs{ display:flex; justify-content:space-between; align-items:center; padding:12px 6px 2px; color:#f1dcc0; text-align:left; gap:10px; }
+  .set .knobs b{ display:block; font:600 1.15rem/1.1 var(--serif); }
+  .set .knobs span{ font:400 11px/1.3 var(--sans); color:#cfb79a; }
+  .set .dial{ width:30px; height:30px; flex:0 0 30px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #e9c27a, #8a6326); box-shadow:0 2px 6px rgba(0,0,0,.5); }
+  .set.needtap{ animation:glowSet 1.6s ease-in-out infinite; }
+  @keyframes glowSet{ 50%{ box-shadow:0 30px 60px -30px rgba(0,0,0,.8), inset 0 0 0 2px #7a5338, 0 0 0 5px rgba(255,207,122,.4); } }
+  .tapnote{ display:none; margin-top:12px; font:400 13px/1.4 var(--sans); color:var(--warm); }
+  .needtap + .tapnote{ display:block; }
+
+  /* pill */
+  #pill{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom)); transform:translate(-50%, 160%); z-index:30;
+    display:flex; align-items:center; gap:10px; padding:10px 16px 10px 14px; border:0; border-radius:999px; white-space:nowrap;
+    background:rgba(255,250,240,.92); color:var(--ink); font:500 12px/1 var(--sans); letter-spacing:.06em;
+    box-shadow:0 12px 28px -12px rgba(0,0,0,.6); transition:transform .6s cubic-bezier(.3,1.3,.5,1);
+  }
+  #pill.on{ transform:translate(-50%, 0); }
+  .eq{ display:flex; gap:3px; align-items:flex-end; height:16px; }
+  .eq i{ width:3px; height:30%; border-radius:2px; background:#c25a72; }
+  .playing .eq i{ animation:eq .9s ease-in-out infinite; }
+  .eq i:nth-child(2){ animation-delay:.2s !important; } .eq i:nth-child(3){ animation-delay:.4s !important; } .eq i:nth-child(4){ animation-delay:.1s !important; }
+  @keyframes eq{ 0%,100%{ height:25%; } 50%{ height:100%; } }
+  body.scene-mode #pill{ bottom:calc(54px + env(safe-area-inset-bottom)); }
+  body.done-mode #pill{ bottom:calc(54px + env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <div>
+    <div class="door">
+      <div class="frame"></div><div class="glow"></div><div class="leaf"></div>
+      <div class="plate">Nath Villa</div>
+      <div class="lantern"></div>
+    </div>
+    <h1>Knock, knock.</h1>
+    <p>Someone at Nath Villa has been waiting all evening to say something.</p>
+    <button class="btn" id="knock" type="button">Knock</button>
+    <div class="small">Sound on. There’s a song inside.</div>
+  </div>
+</div>
+
+<div id="scene">
+  <svg id="sky" viewBox="0 0 390 760" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0d1230"/><stop offset=".55" stop-color="#24285a"/><stop offset="1" stop-color="#4a3a6e"/>
+      </linearGradient>
+      <linearGradient id="g-warm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#1b2457"/><stop offset=".55" stop-color="#4a4790"/><stop offset="1" stop-color="#b9789a"/>
+      </linearGradient>
+      <radialGradient id="g-moonglow"><stop offset="0" stop-color="#fff3c9" stop-opacity=".55"/><stop offset="1" stop-color="#fff3c9" stop-opacity="0"/></radialGradient>
+      <radialGradient id="g-win"><stop offset="0" stop-color="#ffe7a8"/><stop offset="1" stop-color="#ffb24d"/></radialGradient>
+    </defs>
+    <rect width="390" height="760" fill="url(#g-sky)"/>
+    <rect class="warmth" width="390" height="760" fill="url(#g-warm)" opacity="0"/>
+    <g id="stars"></g>
+
+    <g id="moon" transform="translate(272 168)">
+      <circle class="halo" r="120" fill="url(#g-moonglow)" opacity=".5"/>
+      <circle r="54" fill="#fff3c9"/>
+      <circle cx="-18" cy="-22" r="8" fill="#f1e2ae"/><circle cx="22" cy="-6" r="5" fill="#f1e2ae"/><circle cx="-4" cy="30" r="6" fill="#f1e2ae"/>
+      <ellipse class="mcheek" cx="-26" cy="14" rx="9" ry="5" fill="#f3a6b4" opacity="0"/>
+      <ellipse class="mcheek" cx="26" cy="14" rx="9" ry="5" fill="#f3a6b4" opacity="0"/>
+      <g stroke="#6a5532" stroke-width="3.2" stroke-linecap="round" fill="none">
+        <path class="meyeL"/><path class="meyeR"/><path class="mmouth"/>
+      </g>
+    </g>
+
+    <g id="cloud">
+      <g fill="#566087">
+        <circle cx="228" cy="178" r="40"/><circle cx="272" cy="150" r="52"/><circle cx="320" cy="176" r="42"/>
+        <rect x="190" y="170" width="170" height="48" rx="24"/>
+      </g>
+      <g fill="#6c769e" opacity=".8"><circle cx="258" cy="146" r="30"/><circle cx="300" cy="160" r="24"/></g>
+      <g stroke="#2a2f4f" stroke-width="3" stroke-linecap="round" fill="none">
+        <path d="M250 182 l12 4"/><path d="M296 182 l-12 4"/><path d="M262 200 q11 -7 22 0"/>
+      </g>
+    </g>
+
+    <g fill="#0b0d1e">
+      <path d="M0 540 C30 470 70 470 82 520 C90 450 140 440 150 500 C150 520 140 560 140 600 L0 600 Z" opacity=".9"/>
+      <rect x="64" y="560" width="10" height="70"/>
+      <path d="M150 760 V600 h20 v-30 h16 a32 32 0 0 1 64 0 h16 v30 h20 V560 h14 a22 22 0 0 1 44 0 h14 V760 Z"/>
+      <path d="M200 575 q18 -40 36 0 z"/><path d="M302 560 q14 -28 28 0 z"/>
+      <rect x="0" y="620" width="390" height="140"/>
+    </g>
+    <g fill="url(#g-win)">
+      <path d="M196 640 v-18 a8 8 0 0 1 16 0 v18 z"/><path d="M224 640 v-18 a8 8 0 0 1 16 0 v18 z"/>
+      <path d="M310 630 v-16 a7 7 0 0 1 14 0 v16 z"/>
+      <path d="M196 690 v-18 a8 8 0 0 1 16 0 v18 z" opacity=".7"/><path d="M296 690 v-18 a8 8 0 0 1 16 0 v18 z"/>
+      <path d="M262 600 v-10 a6 6 0 0 1 12 0 v10 z" opacity=".8"/>
+    </g>
+    <g class="fireflies" fill="#ffe9a0"></g>
+  </svg>
+
+  <div id="lyric">
+    <div class="l">Tum hi mujhse rooth gaye to,<br>kisse baat karoon main?</div>
+    <div class="l">Jee uttha hoon tumse milke,<br>tum jo ho to hoon main.</div>
+    <small>Chalo Jaane Do · Bhoothnath</small>
+  </div>
+
+  <div id="bubble"></div>
+
+  <button id="ghost" type="button" aria-label="The friendly ghost">
+    <svg viewBox="-60 -70 120 150">
+      <g class="act">
+        <path d="M-44 0 C-44 -40 -24 -62 0 -62 C24 -62 44 -40 44 0 V58 q-7.3 10 -14.6 0 t-14.7 0 t-14.7 0 t-14.7 0 t-14.7 0 t-14.6 0 Z" fill="#f6f8ff"/>
+        <path d="M-14 6 q14 26 28 0 q-4 20 -14 22 q-10 -2 -14 -22 z" fill="#d9dcea"/>
+        <ellipse cx="-15" cy="-18" rx="6.5" ry="9" fill="#2b2438"/><ellipse cx="15" cy="-18" rx="6.5" ry="9" fill="#2b2438"/>
+        <circle cx="-13" cy="-21" r="2.2" fill="#fff"/><circle cx="17" cy="-21" r="2.2" fill="#fff"/>
+        <ellipse cx="-27" cy="-2" rx="7" ry="4" fill="#f5b3c0"/><ellipse cx="27" cy="-2" rx="7" ry="4" fill="#f5b3c0"/>
+        <path d="M-7 0 q7 7 14 0" stroke="#2b2438" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+        <g class="hands" fill="#f6f8ff">
+          <ellipse cx="-46" cy="14" rx="9" ry="13" transform="rotate(-24 -46 14)"/>
+          <ellipse cx="46" cy="14" rx="9" ry="13" transform="rotate(24 46 14)"/>
+        </g>
+      </g>
+    </svg>
+  </button>
+  <div id="tapme">Tap the ghost</div>
+  <button id="down" type="button">The song ↓</button>
+</div>
+
+<section id="radio">
+  <div class="eyebrow">Now playing at Nath Villa</div>
+  <h2>Chalo Jaane Do</h2>
+  <p>The ghost’s favourite song. He hums it whenever someone he likes is upset.</p>
+  <div class="set" id="set">
+    <div class="screen"><div id="yt"></div></div>
+    <div class="knobs">
+      <div><b>Bhoothnath</b><span>Amitabh Bachchan, Juhi Chawla</span></div>
+      <span class="eq"><i></i><i></i><i></i><i></i></span>
+      <div class="dial"></div>
+    </div>
+  </div>
+  <div class="tapnote">Your phone needs one tap on the play button above.</div>
+</section>
+
+<button id="pill" type="button" aria-label="Pause or play the song">
+  <span class="eq"><i></i><i></i><i></i><i></i></span><span>Chalo Jaane Do</span><span id="pp">▶</span>
+</button>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const NS = "http://www.w3.org/2000/svg";
+
+  /* ============================================================ sky bits */
+  const stars = $("#stars");
+  let seed = 7; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 70; i++){
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", (rnd() * 390).toFixed(1)); c.setAttribute("cy", (rnd() * 520).toFixed(1));
+    c.setAttribute("r", (0.6 + rnd() * 1.4).toFixed(2)); c.setAttribute("fill", "#fff");
+    c.setAttribute("opacity", (0.4 + rnd() * 0.6).toFixed(2));
+    if (rnd() < 0.45){ c.classList.add("tw"); c.style.animationDelay = (rnd() * 3).toFixed(2) + "s"; }
+    stars.appendChild(c);
+  }
+  const ff = $(".fireflies");
+  for (let i = 0; i < 9; i++){
+    const c = document.createElementNS(NS, "circle");
+    c.setAttribute("r", 2); c.setAttribute("opacity", 0);
+    const x = 20 + rnd() * 350, y = 520 + rnd() * 120;
+    c.innerHTML = `<animate attributeName="opacity" values="0;.9;0" dur="${3 + rnd() * 3}s" begin="${rnd() * 4}s" repeatCount="indefinite"/>
+      <animateMotion dur="${7 + rnd() * 6}s" repeatCount="indefinite" path="M${x} ${y} q30 -40 60 0 t-60 0"/>`;
+    ff.appendChild(c);
+  }
+
+  /* ============================================================ moon mood */
+  function moon(m){
+    const eL = $(".meyeL"), eR = $(".meyeR"), mo = $(".mmouth");
+    if (m < 0.5){
+      const t = m / 0.5;
+      eL.setAttribute("d", `M-26 ${lerp(-6, -10, t)} L-10 ${lerp(-10, -10, t)}`);
+      eR.setAttribute("d", `M26 ${lerp(-6, -10, t)} L10 ${lerp(-10, -10, t)}`);
+    } else {
+      const t = (m - 0.5) / 0.5;
+      eL.setAttribute("d", `M-26 -8 Q-18 ${lerp(-10, -18, t)} -10 -8`);
+      eR.setAttribute("d", `M10 -8 Q18 ${lerp(-10, -18, t)} 26 -8`);
+    }
+    const w = lerp(8, 16, m), q = lerp(-7, 14, m), y = lerp(20, 14, m);
+    mo.setAttribute("d", `M${-w} ${y} Q0 ${y + q} ${w} ${y}`);
+    document.querySelectorAll(".mcheek").forEach((c) => c.setAttribute("opacity", Math.max(0, (m - 0.35) * 1.5).toFixed(2)));
+    $("#moon .halo").setAttribute("opacity", lerp(0.35, 1, m).toFixed(2));
+    $(".warmth").style.opacity = Math.max(0, (m - 0.4) * 1.4).toFixed(2);
+    $("#cloud").style.transform = `translateX(${lerp(0, 300, Math.min(1, m * 1.05))}px) translateY(${lerp(0, -30, m)}px)`;
+  }
+  moon(0);
+
+  /* ============================================================ ghost */
+  const LINES = [
+    ["Chalo jaane do…", "the ghost, very politely"],
+    ["Ab chhodo bhi?", "he did a little spin for this"],
+    ["Itna bhi kya gussa karna?", "the moon pretends not to hear"],
+    ["Kuch apni kaho, kuch meri suno.", "he’s all ears. Mostly sheet, but ears."],
+    ["Tum hi mujhse rooth gaye to…", "…then who do I even talk to?"],
+    ["Tum jo ho to hoon main.", "okay, he’s getting emotional now"],
+  ];
+  const ACTS = ["a-spin", "a-jump", "a-wobble", "a-flip", "a-shy", "a-jump"];
+  const FX = ["✦", "♥", "✧", "♪", "♥", "✦"];
+  const ghost = $("#ghost"), bubble = $("#bubble"), scene = $("#scene");
+  let step = 0, done = false, busy = false;
+
+  function burst(n, glyph){
+    const g = ghost.getBoundingClientRect(), s = scene.getBoundingClientRect();
+    for (let i = 0; i < n; i++){
+      const e = document.createElement("span");
+      e.className = "fx"; e.textContent = glyph;
+      e.style.left = (g.left - s.left + g.width * (0.2 + Math.random() * 0.6)) + "px";
+      e.style.top = (g.top - s.top + g.height * 0.3) + "px";
+      e.style.color = ["#ffd27a", "#f3a6b4", "#cfe0ff"][i % 3];
+      e.style.setProperty("--dx", ((Math.random() - 0.5) * 120).toFixed(0) + "px");
+      e.style.animationDelay = (i * 0.06) + "s";
+      scene.appendChild(e);
+      setTimeout(() => e.remove(), 2000);
+    }
+  }
+  function say(text, sub){
+    bubble.classList.remove("on");
+    setTimeout(() => {
+      bubble.innerHTML = `${text}${sub ? `<small>${sub}</small>` : ""}`;
+      bubble.classList.add("on");
+    }, 180);
+  }
+
+  ghost.addEventListener("click", () => {
+    if (busy) return;
+    busy = true; setTimeout(() => busy = false, 700);
+    $("#tapme").classList.add("off");
+    const i = done ? Math.floor(Math.random() * ACTS.length) : step;
+    ghost.classList.remove(...ACTS);
+    void ghost.offsetWidth;
+    ghost.classList.add(ACTS[i]);
+    burst(done ? 6 : 4 + step, FX[i]);
+    if (!done){
+      const [t, sub] = LINES[step];
+      say(t, sub);
+      step++;
+      moon(step / LINES.length);
+      if (step === LINES.length){
+        done = true;
+        setTimeout(() => {
+          bubble.classList.remove("on");
+          $("#lyric").classList.add("on");
+          burst(14, "♥");
+          $("#down").classList.add("on");
+          document.body.classList.add("done-mode");
+        }, 2600);
+      }
+    }
+  });
+  $("#down").addEventListener("click", () => $("#radio").scrollIntoView({ behavior: "smooth" }));
+
+  /* ============================================================ song */
+  let player = null, ready = false, want = false, playing = false;
+  const pill = $("#pill");
+  window.onYouTubeIframeAPIReady = () => {
+    player = new YT.Player("yt", {
+      videoId: "UyjL052eFAA",
+      playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+      events: {
+        onReady: () => { ready = true; if (want) play(); },
+        onStateChange: (e) => {
+          playing = e.data === YT.PlayerState.PLAYING;
+          document.body.classList.toggle("playing", playing);
+          $("#pp").textContent = playing ? "❚❚" : "▶";
+          if (playing) $("#set").classList.remove("needtap");
+          if (e.data === YT.PlayerState.ENDED){ player.seekTo(0); player.playVideo(); }
+        },
+      },
+    });
+  };
+  if (!/[?&]noyt\b/.test(location.search)){
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  }
+
+  function play(){
+    want = true;
+    if (!ready) return;
+    try{ player.unMute(); player.setVolume(85); player.playVideo(); } catch(e){}
+  }
+  pill.addEventListener("click", () => {
+    if (!ready) return;
+    if (playing) player.pauseVideo();
+    else {
+      play();
+      setTimeout(() => { if (!playing){ $("#set").classList.add("needtap"); $("#radio").scrollIntoView({ behavior: "smooth" }); } }, 1500);
+    }
+  });
+
+  /* ============================================================ knock */
+  $("#knock").addEventListener("click", () => {
+    play();
+    $("#gate").classList.add("open", "gone");
+    document.body.classList.remove("locked");
+    document.body.classList.add("scene-mode");
+    pill.classList.add("on");
+    setTimeout(() => say("Oh! You came.", "tap me, I know a few tricks"), 1500);
+    setTimeout(() => { if (!playing) $("#set").classList.add("needtap"); }, 4000);
+  });
+})();
+</script>
+</body>
+</html>
